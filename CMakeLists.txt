@@ -11,7 +11,7 @@ if(BUILD_WITH_SSE)
   add_definitions(-DUSE_SSE=1)
 endif()
 
-if(BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS AND MSVC)
   add_definitions(-DIMAGEQUANT_EXPORTS)
 endif()
 #find_package(OpenMP)
