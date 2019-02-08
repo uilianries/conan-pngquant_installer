@@ -1,44 +1,54 @@
 from conans import ConanFile, CMake, tools
-import os, shutil
+import os
 
 
-class pngquantConan(ConanFile):
+class PNGQuantConan(ConanFile):
     name = "pngquant"
     version = "2.6.0"
-    license = "Dual GPL v3 + Commercial"
-    url = "https://github.com/memsharded/conan-pngquant"
+    license = "GPL-3.0", "Commercial"
+    url = "https://github.com/conan-community/conan-pngquant"
+    homepage = "https://github.com/pornel/pngquant"
+    description = "Lossy PNG compressor"
+    topics = ("conan", "pngquant", "png", "compressor")
+    author = "Conan Community"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
+               "fPIC": [True, False],
                "sse": [True, False]}
-    default_options = "shared=False", "sse=False"
+    default_options = {"shared": False, "sse": False, "fPIC": True}
     generators = "cmake"
-    exports = "CMakeLists.txt"
-    requires =  "libpng/1.6.21@lasote/stable"
+    exports_sources = "CMakeLists.txt"
+    exports = "LICENSE"
+    requires = "libpng/1.6.36@bincrafters/stable"
+    _source_subfolder = "source_subfolder"
 
-    def config(self):
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+
+    def configure(self):
         del self.settings.compiler.libcxx
 
     def source(self):
-       self.run("git clone https://github.com/pornel/pngquant.git")
-       self.run("cd pngquant && git checkout msvc")
-       shutil.copy("CMakeLists.txt", "pngquant")
-       #tools.download("https://github.com/pornel/pngquant/archive/%s.zip" % self.version, "pngquant.zip")
-       #tools.unzip("pngquant.zip")
-       #shutil.copy("CMakeLists.txt", "pngquant-%s/" % self.version)
+        sha256 = "ea897936c418c15329914d0dbbbce0a764f808e9f161b3103acf23eb71022e09"
+        tools.get("{}/archive/{}.tar.gz".format(self.homepage, self.version), sha256=sha256)
+        extracted_dir = self.name + "-" + self.version
+        os.rename(extracted_dir, self._source_subfolder)
+
+    def _configure_cmake(self):
+        cmake = CMake(self)
+        cmake.definitions["BUILD_WITH_SSE"] = self.options.sse
+        cmake.configure()
+        return cmake
 
     def build(self):
-        cmake = CMake(self.settings)
-        shared = "-DBUILD_SHARED_LIBS=ON" if self.options.shared else ""
-        sse = "-DBUILD_WITH_SSE=ON" if self.options.sse else ""
-        self.run('cmake pngquant %s %s' % (cmake.command_line, shared))
-        self.run("cmake --build . %s" % cmake.build_config)
+        cmake = self._configure_cmake()
+        cmake.build()
 
     def package(self):
-        self.copy("*libimagequant.h", dst="include", src="pngquant/lib")
-        self.copy("*.lib", dst="lib", keep_path=False)
-        self.copy("*.dll", dst="bin", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
-        self.copy("*.a", dst="lib", keep_path=False)
+        self.copy("COPYRIGHT", dst="licenses", src=self._source_subfolder)
+        cmake = self._configure_cmake()
+        cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = ["imagequant"]
+        self.cpp_info.libs = tools.collect_libs(self)

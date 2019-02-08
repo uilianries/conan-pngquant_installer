@@ -6,3 +6,4 @@ conan_basic_setup()
 
 ADD_EXECUTABLE(example example.c)
 TARGET_LINK_LIBRARIES(example ${CONAN_LIBS})
+set_target_properties(example PROPERTIES C_STANDARD 99)
