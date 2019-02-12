@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(pngquant)
+project(pngquant C)
 
 option(BUILD_WITH_SSE "Use SSE" ON)
 
@@ -17,19 +17,16 @@ add_library(imagequant
 )
 
 if(BUILD_WITH_SSE)
-  add_definitions(-DUSE_SSE=1)
   target_compile_definitions(imagequant PUBLIC USE_SSE=1)
-endif()
-
-if(BUILD_SHARED_LIBS AND MSVC)
-  target_compile_definitions(imagequant PUBLIC IMAGEQUANT_EXPORTS=1)
 endif()
 
 set_target_properties(imagequant PROPERTIES C_STANDARD 99)
 
 if(MSVC)
-    set_target_properties(imagequant PROPERTIES CXX_STANDARD 11)
     target_compile_definitions(imagequant PRIVATE /wd4244 /wd4267 /wd4305 /wd4244)
+    if(BUILD_SHARED_LIBS)
+        target_compile_definitions(imagequant PUBLIC IMAGEQUANT_EXPORTS=1)
+    endif()
 endif()
 
 export(TARGETS imagequant
