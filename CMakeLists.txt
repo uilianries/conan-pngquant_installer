@@ -29,7 +29,7 @@ set_target_properties(imagequant PROPERTIES C_STANDARD 99)
 
 if(MSVC)
     set_target_properties(imagequant PROPERTIES CXX_STANDARD 11)
-    target_compile_definitions(imagequant PRIVATE wd4244 wd4267 wd4305)
+    target_compile_definitions(imagequant PRIVATE /wd4244 /wd4267 /wd4305 /wd4244)
 endif()
 
 export(TARGETS imagequant
