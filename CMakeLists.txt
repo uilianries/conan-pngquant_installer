@@ -1,48 +1,33 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 project(pngquant C)
 
-option(BUILD_WITH_SSE "Use SSE" ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-add_library(imagequant
-  source_subfolder/lib/libimagequant.c
-  source_subfolder/lib/blur.c
-  source_subfolder/lib/mediancut.c
-  source_subfolder/lib/mempool.c
-  source_subfolder/lib/nearest.c
-  source_subfolder/lib/pam.c
-  source_subfolder/lib/viter.c
-)
+option(USE_SSE "Activate SSE feature for x86" OFF)
 
-if(BUILD_WITH_SSE)
-  target_compile_definitions(imagequant PUBLIC USE_SSE=1)
-endif()
+set(SOURCE_FILES    source_subfolder/pngquant_opts.c
+                    source_subfolder/pngquant.c
+                    source_subfolder/rwpng.c)
 
-set_target_properties(imagequant PROPERTIES C_STANDARD 99)
+set(HEADER_FILES    source_subfolder/rwpng.h
+                    source_subfolder/pngquant_opts.h)
 
-if(MSVC)
-    target_compile_definitions(imagequant PRIVATE /wd4244 /wd4267 /wd4305 /wd4244)
-    if(BUILD_SHARED_LIBS)
-        target_compile_definitions(imagequant PUBLIC IMAGEQUANT_EXPORTS=1)
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CONAN_LIBS})
+
+target_compile_definitions(${CMAKE_PROJECT_NAME} PUBLIC USE_LCMS=1)
+set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES C_STANDARD 99)
+
+if (USE_SSE)
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE USE_SSE=1)
+    if ((CMAKE_C_COMPILER_ID MATCHES "(Clang)|(GNU)") AND
+        (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)"))
+        target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -fno-math-errno -funroll-loops -fomit-frame-pointer -msse -mfpmath=sse -fexcess-precision=fast)
     endif()
 endif()
 
-export(TARGETS imagequant
-       NAMESPACE ${CMAKE_PROJECT_NAME}::
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}-config.cmake")
-
-install(TARGETS imagequant
-        EXPORT ${CMAKE_PROJECT_NAME}-config
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
-
-install(DIRECTORY source_subfolder/lib/
-        DESTINATION include
-        FILES_MATCHING PATTERN "*.h")
-
-install(EXPORT ${CMAKE_PROJECT_NAME}-config
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/${CMAKE_PROJECT_NAME}/cmake"
-        NAMESPACE ${CMAKE_PROJECT_NAME}::)
+install(TARGETS ${CMAKE_PROJECT_NAME}
+        RUNTIME DESTINATION bin)
