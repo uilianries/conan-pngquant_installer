@@ -3,7 +3,7 @@ project(pngquant C)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(conanbuildinfo.cmake)
 conan_basic_setup()
 
 option(USE_SSE "Activate SSE feature for x86" OFF)
