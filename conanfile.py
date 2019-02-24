@@ -31,7 +31,7 @@ class PNGQuantInstallerConan(ConanFile):
         self.requires("libpng/1.6.36@bincrafters/stable")
         self.requires("lcms/2.9@bincrafters/stable")
         if self.settings.compiler == "Visual Studio":
-            self.requires("getopt/1.0@bincrafters/stable")
+            self.requires("getopt/2.0@bincrafters/stable")
 
     def source(self):
         sha256 = "5edf7c5bffd07e5d28fcc6d4d94a187c30b532c52ac986b3e45aff3dce0567dc"
