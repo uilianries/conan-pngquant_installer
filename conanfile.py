@@ -7,7 +7,7 @@ import os
 
 class PNGQuantConan(ConanFile):
     name = "pngquant"
-    version = "2.6.0"
+    version = "2.12.1"
     license = "GPL-3.0", "Commercial"
     url = "https://github.com/conan-community/conan-pngquant"
     homepage = "https://github.com/pornel/pngquant"
